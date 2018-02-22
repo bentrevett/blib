@@ -18,7 +18,9 @@ class Trainer:
                  clip = None,
                  n_inp = 1,
                  n_out = 1,
-                 use_gpu = torch.cuda.is_available()):
+                 use_gpu = torch.cuda.is_available(),
+                 load_path = None,
+                 save_path = None):
         """
         - Dataloaders are the torch.utils.data.DataLoader's for train/val/test data. If only two dataloaders are supplied, val == test.
 
@@ -37,10 +39,16 @@ class Trainer:
         self.n_inp = n_inp
         self.n_out = n_out
         self.use_gpu = use_gpu
+        self.load_path = load_path
+        self.save_path = save_path
 
         self.losses = defaultdict(list) #holds all the losses
+        self.best_val_loss = float('inf')
 
         self.train_dataloader, self.val_dataloader, self.test_dataloader = self.process_dataloaders(dataloaders)
+
+        if self.load_path is not None:
+            self.model.load_state_dict(torch.load(self.load_path))
 
     def process_dataloaders(self, dataloaders):
         """
@@ -54,8 +62,12 @@ class Trainer:
 
         This also checks if the dataloader has the correct number of inputs/outputs.
         """
-        
-        assert type(dataloaders) is tuple, f'dataloaders must be a tuple of (train, val, test) dataloaders'
+        assert type(dataloaders) is not list, f'Either want a single dataloader or a tuple of dataloaders, not a list!'
+
+        #handles the case when user only passes a single dataloader
+        if type(dataloaders) is not tuple:
+            dataloaders = (dataloaders,)        
+
         assert len(dataloaders) < 4, f'Can only handle 3 dataloaders, you gave {len(dataloaders)}'
 
         for dl in dataloaders:
@@ -74,27 +86,60 @@ class Trainer:
             return dataloaders[0], dataloaders[1], dataloaders[2]
 
     def train(self):
+        """
+        Runs a single epoch while updating parameters
+        """
         
-        self.model.train()
+        self.model.train() #turn back on do/bn
         self.mode = 'Training'
-        loss = self.iteration(self.train_dataloader)
-        self.losses['train_loss'].append(loss)
+        loss = self._iteration(self.train_dataloader) #run single pass
+        self.losses['train_loss'].append(loss) #append losses
 
     def validate(self):
+        """
+        Runs a single epoch while not updating any parameters
+        Updates scheduler
+        Saves parameters if best validation loss so far
+        """
         
-        self.model.eval()
+        self.model.eval() #turn off do/bn
         self.mode = 'Validating'
-        loss = self.iteration(self.val_dataloader)
-        self.losses['val_loss'].append(loss)
+        loss = self._iteration(self.val_dataloader) #run single pass
+        self.losses['val_loss'].append(loss) #append losses
+
+        if self.scheduler is not None:
+            self.scheduler.step(loss) #update LR
+
+        if self.save_path is not None and loss < self.best_val_loss:
+            torch.save(self.model.state_dict(), self.save_path) #save params if best loss
+            self.best_val_loss = loss
 
     def test(self):
+        """
+        Runs single epoch while not updating any parameters
+        Should only be run once after training is complete
+        """
         
-        self.model.eval()
+        self.model.eval() #turn off do/bn
         self.mode = 'Testing'
-        loss = self.iteration(self.test_dataloader)
-        self.losses['test_loss'].append(loss)
+        loss = self._iteration(self.test_dataloader) #run single pass
+        self.losses['test_loss'].append(loss) #append losses
 
-    def iteration(self, dataloader):
+    def _iteration(self, dataloader):
+        """
+        Runs single forward and backward pass through the data
+
+        Gets data (as Tensors) from dataloader
+        Converts to variables
+        Puts on GPU (if you have one)
+        Zeros gradients from last param update (if training)
+        Passes Variables through the model
+        Calculates losses (sums losses for multi-output models)
+        Backward pass to get gradients (if training)
+        Clips parameters (if training)
+        Updates parameters (if training)
+        Returns loss averaged over epoch
+        """
 
         for i, data in enumerate(tqdm(dataloader, desc=self.mode), start=1):
             
@@ -114,7 +159,6 @@ class Trainer:
             y_pred = self.model(*X)
 
             if self.n_out > 1:
-                assert len(y_pred) == len(y), f'Model output shape is {y_pred.shape}, target shape is {y.shape}'
                 loss = sum([self.criterion(_y_pred, _y.squeeze()) for _y_pred, _y in zip(y_pred, y)])
             else:
                 loss = self.criterion(y_pred, y[0].squeeze())

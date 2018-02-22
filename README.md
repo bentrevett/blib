@@ -11,3 +11,8 @@ Everything based on the `trainer`, which is a rip-off of __fastai__'s `learner`.
 Simlest way to use is:
 
 `trainer = blib.train.Trainer((train_dataloader, val_dataloader, test_dataloader), model, optimizer, criterion)`
+
+## TODO
+
+  - Find a nice way to different metrics (such as accuracy and F1) to the `trainer`
+  - Able to add multiple loss functions
