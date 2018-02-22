@@ -3,6 +3,7 @@ from torch.autograd import Variable
 from tqdm import tqdm
 from warnings import warn
 from collections import defaultdict
+import os
 
 class Trainer:
     """
@@ -48,6 +49,7 @@ class Trainer:
         self.train_dataloader, self.val_dataloader, self.test_dataloader = self.process_dataloaders(dataloaders)
 
         if self.load_path is not None:
+            assert os.path.isfile(load_path) 
             self.model.load_state_dict(torch.load(self.load_path))
 
     def process_dataloaders(self, dataloaders):
