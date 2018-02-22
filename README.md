@@ -5,6 +5,7 @@ Based off (i.e. some code copied from):
   - https://github.com/fastai/fastai/
   - https://github.com/dmarnerides/pydlt
   - https://github.com/mxbi/mlcrate
+  - https://github.com/allenai/allennlp
 
 Everything based on the `trainer`, which is a rip-off of __fastai__'s `learner`.
 
