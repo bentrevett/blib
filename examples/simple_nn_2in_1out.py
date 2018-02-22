@@ -18,8 +18,8 @@ X1_val = torch.ones(100, 100).long()
 X2_val = torch.ones(100, 100).long()
 y_val = torch.LongTensor(np.random.randint(2, size=(100,)))
 
-train_dataset = blib.util.TwoOneDataset(X1_train, X2_train, y_train)
-val_dataset = blib.util.TwoOneDataset(X1_val, X2_val, y_val)
+train_dataset = blib.data.TwoOneDataset(X1_train, X2_train, y_train)
+val_dataset = blib.data.TwoOneDataset(X1_val, X2_val, y_val)
 
 train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32)
 val_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32)

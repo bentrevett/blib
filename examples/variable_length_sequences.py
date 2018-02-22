@@ -30,9 +30,9 @@ class VariableLengthSequences(nn.Module):
 
 model = VariableLengthSequences()
 
-train_dataset = blib.util.TwoOneDataset(X1_train, X2_train, y1_train)
+train_dataset = blib.data.TwoOneDataset(X1_train, X2_train, y1_train)
 
-train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, collate_fn=blib.util.data.TwoOnePadCollate())
+train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, collate_fn=blib.data.TwoOnePadCollate())
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss()
