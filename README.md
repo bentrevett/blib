@@ -16,3 +16,5 @@ Simlest way to use is:
 
   - Find a nice way to different metrics (such as accuracy and F1) to the `trainer`
   - Able to add multiple loss functions
+  - Different loss function per output
+  - More control over scheduler steps, i.e. step every batch as in SGDR
