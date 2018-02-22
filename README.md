@@ -1,17 +1,18 @@
 # blib
+
 **B**en's **Lib** for ML/DL utilities. 
 
 Based off (i.e. some code copied from):
-  - https://github.com/fastai/fastai/
-  - https://github.com/dmarnerides/pydlt
-  - https://github.com/mxbi/mlcrate
-  - https://github.com/allenai/allennlp
+- https://github.com/fastai/fastai/
+- https://github.com/dmarnerides/pydlt
+- https://github.com/mxbi/mlcrate
+- https://github.com/allenai/allennlp
 
 Everything based on the `trainer`, which is a rip-off of __fastai__'s `learner`.
 
 Simlest way to use is:
 
-``` python 
+``` python
 trainer = blib.train.Trainer((train_dataloader, val_dataloader, test_dataloader), model, optimizer, criterion)
 
 for i in range(n_epochs):
@@ -21,13 +22,13 @@ for i in range(n_epochs):
 ```
 
 The goal is for something like:
-  - `train` has all of the wrapper functionality for PyTorch, including pre-build models
-  - `data` has all the PyTorch 'data' functionality, like datasets and dataloaders
-  - `datasets` has functionality to download and use actual datasets
-  - `text` has all of the text processing, i.e. formatting into csv, reading with pandas, vocab stuff
-  - `metrics` has all of the metrics
-  - `models` has pre-built models which can be wrapped with a `trainer`
-  - `utils` everything else
+- `train` has all of the wrapper functionality for PyTorch, including pre-build models
+- `data` has all the PyTorch 'data' functionality, like datasets and dataloaders
+- `datasets` has functionality to download and use actual datasets
+- `text` has all of the text processing, i.e. formatting into csv, reading with pandas, vocab stuff
+- `metrics` has all of the metrics
+- `models` has pre-built models which can be wrapped with a `trainer`
+- `utils` everything else
 
 ## Goals
 
@@ -51,6 +52,7 @@ X1_train, X2_train, y_train, X1_val, X2_val, y_val = blib.text.from_csv('data/sn
 ```
 
 ### Tokenizing data
+
 ``` python
 #build the dictionary from sources
 X_vocab = blib.text.build_vocab(X_train)
@@ -66,6 +68,7 @@ X_train, X_val, X_test = X_vocab.tokenize((X_train, X_val, X_test))
 ```
 
 ### Creating dataset and dataloader
+
 ``` python
 train_dataset = blib.data.TwoOneDataset(X1_train, X2_train, y_train)
 
@@ -74,11 +77,12 @@ train_dataloader = blib.data.DataLoader(train_dataset, batch_size=True, shuffle=
 ```
 
 ### Using pre-build models
+
 ``` python
-model = blib.models.RNNClassification(len(X_vocab), 
-                                      len(y_vocab), 
-                                      emb_dim, 
-                                      hid_dim, 
+model = blib.models.RNNClassification(len(X_vocab),
+                                      len(y_vocab),
+                                      emb_dim,
+                                      hid_dim,
                                       rnn_type,
                                       n_layers,
                                       bidirectional,
@@ -88,6 +92,7 @@ model = blib.models.RNNClassification(len(X_vocab),
 ```
 
 ## Define optimizer and loss function and off you go
+
 ``` python
 
 #opt and loss are just convenience wrappers so you only need the blib include
@@ -102,7 +107,7 @@ trainer.test()
 
 ## TODO
 
-  - Find a nice way to add different metrics (such as accuracy and F1) to the `trainer`
-  - Able to add multiple loss functions
-  - Different loss function per output
-  - More control over scheduler steps, i.e. step every batch as in SGDR
+- Find a nice way to add different metrics (such as accuracy and F1) to the `trainer`
+- Able to add multiple loss functions
+- Different loss function per output
+- More control over scheduler steps, i.e. step every batch as in SGDR
