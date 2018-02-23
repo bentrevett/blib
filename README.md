@@ -1,12 +1,13 @@
 # blib
 
-**B**en's **Lib** for ML/DL utilities. 
+**B**en's **Lib** for ML/DL utilities.
 
 Based off (i.e. some code copied from):
-- https://github.com/fastai/fastai/
-- https://github.com/dmarnerides/pydlt
-- https://github.com/mxbi/mlcrate
-- https://github.com/allenai/allennlp
+
+- <https://github.com/fastai/fastai/>
+- <https://github.com/dmarnerides/pydlt>
+- <https://github.com/mxbi/mlcrate>
+- <https://github.com/allenai/allennlp>
 
 Everything based on the `trainer`, which is a rip-off of __fastai__'s `learner`.
 
@@ -22,6 +23,7 @@ for i in range(n_epochs):
 ```
 
 The goal is for something like:
+
 - `train` has all of the wrapper functionality for PyTorch, including pre-build models
 - `data` has all the PyTorch 'data' functionality, like datasets and dataloaders
 - `datasets` has functionality to download and use actual datasets
