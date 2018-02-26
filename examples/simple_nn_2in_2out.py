@@ -41,7 +41,7 @@ model = TwoTwoNeuralNetwork()
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss()
 
-trainer = blib.train.Trainer((train_data_loader, val_data_loader), model, optimizer, criterion, n_inp=2, n_out=2)
+trainer = blib.train.Trainer([train_data_loader, val_data_loader], model, optimizer, criterion, n_inp=2, n_out=2)
 
 for i in range(1):
     trainer.train()

@@ -2,6 +2,8 @@
 
 import pandas as pd #from_csv
 
+from tqdm import tqdm
+
 import random #shuffling
 
 import glob #from_folders

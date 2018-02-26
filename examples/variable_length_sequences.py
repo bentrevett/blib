@@ -37,7 +37,8 @@ train_data_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, co
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss()
 
-trainer = blib.train.Trainer(train_data_loader, model, optimizer, criterion, n_inp=2)
+#data loader must always be wrapped in a list, even if there is only one!
+trainer = blib.train.Trainer([train_data_loader], model, optimizer, criterion, n_inp=2)
 
 for i in range(5):
     trainer.train()

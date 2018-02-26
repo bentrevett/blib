@@ -40,7 +40,7 @@ model = OneOneNeuralNetwork()
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss()
 
-trainer = blib.train.Trainer((train_data_loader, val_data_loader), model, optimizer, criterion)
+trainer = blib.train.Trainer([train_data_loader, val_data_loader], model, optimizer, criterion)
 
 for i in range(5):
     trainer.train()
