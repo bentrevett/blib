@@ -142,6 +142,7 @@ def build_and_tokenize(sources, max_size=1_000_000, min_freq=0, unk_token='<UNK>
 
     vocab.build_vocab(sources)
 
-    return vocab.tokenize(sources)
+    #need to wrap in tuple to unpack
+    return (vocab, *vocab.tokenize(sources))
 
     
