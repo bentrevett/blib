@@ -64,7 +64,7 @@ class Trainer:
 
         This also checks if the dataloader has the correct number of inputs/outputs.
         """
-        assert type(dataloaders) is not list, f'Either want a single dataloader or a tuple of dataloaders, not a list!'
+        assert type(dataloaders) is not list, 'Either want a single dataloader or a tuple of dataloaders, not a list!' #TODO: change this so it just changes it to a list instead of throwing error?
 
         #handles the case when user only passes a single dataloader
         if type(dataloaders) is not tuple:
