@@ -2,8 +2,8 @@ import blib
 
 #blib.utils.set_seed(1234)
 
-train_path = '../data/aclImdb_v1/train'
-test_path = '../data/aclImdb_v1/test'
+train_path = '../aclImdb_v1/train'
+test_path = '../aclImdb_v1/test'
 folders = ['neg', 'pos']
 
 X_train, y_train = blib.text.from_folders(train_path, folders)
@@ -36,10 +36,10 @@ n_epochs = 3
 
 model = blib.models.RNNClassification(len(X_vocab),
                                       len(y_vocab),
-                                      256,
-                                      256,
+                                      64,
+                                      64,
                                       'LSTM',
-                                      2,
+                                      1,
                                       True,
                                       0.5)
 
@@ -52,4 +52,4 @@ criterion = nn.CrossEntropyLoss()
 
 trainer = blib.train.Trainer([train_dataloader, test_dataloader], model, optimizer, criterion)
 
-trainer.run(100)
+trainer.run(100, patience=0)

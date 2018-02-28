@@ -19,6 +19,8 @@ def from_csv(path, cols=[0,1], skip_header=False, skip_rows=0, splits=None, shuf
     shuffle -> whether to shuffle the data for the splits
     n_fields -> if you just want to use cols[0,n] set n_fields to n, overwrites cols
     """
+    assert os.path.isfile(path), 'Path supplied is not file'
+
     if shuffle==True:
         assert splits is not None, "You only shuffle here when you split the data, if you're looking to shuffle data passed in the neural network, this is NOT when you do it"
 
@@ -84,6 +86,8 @@ def from_folders(path, folders, shuffle=False, splits=None):
 
     Changed it so labels are the text (folder name) and not numerical to make consistent w/ rest of the library
     """
+    assert os.path.isfile(path), 'Path supplied is not file'
+
     if shuffle==True:
         assert splits is not None, "You only shuffle here when you split the data, if you're looking to shuffle data passed in the neural network, this is NOT when you do it"
 
