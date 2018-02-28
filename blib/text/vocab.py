@@ -3,7 +3,7 @@ from tqdm import tqdm
 
 class Vocab:
 
-    def __init__(self, max_size=1_000_000, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+    def __init__(self, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
 
         self.max_size = max_size
         self.min_freq = min_freq
@@ -13,25 +13,41 @@ class Vocab:
         self.end_token = end_token
         self.tokenizer = tokenizer
 
-        if self.tokenizer == None:
-            self.tokenizer = lambda x : x.split(' ')
-
-        if self.tokenizer == 'spacy':
-            import spacy
-            nlp = spacy.load('en')
-            self.tokenizer = lambda x : [token.text for token in nlp.tokenizer(x)]
-
         self.next_id = 0
         self.token_to_id = {}
         self.id_to_token = {}
 
-        if pad_token is not None:
+        assert self.min_freq >= 0, "min_freq must be 0 or greater"
+
+        if self.max_size is not None and self.min_freq>0:
+            assert self.unk_token is not None, "If unk_token = None, then you cannot set max_size or min_freq"
+
+        if self.tokenizer == None:
+            #default tokenizer is to split the string on spaces
+            self.tokenizer = lambda x : x.split(' ')
+        elif self.tokenizer == 'chars':
+            #splits string into individual characters
+            self.tokenizer = lambda x : list(x)
+        elif self.tokenizer == 'spacy':
+            #wrapper for the spacy tokenizer
+            import spacy
+            nlp = spacy.load('en')
+            self.tokenizer = lambda x : [token.text for token in nlp.tokenizer(x)]
+        else:
+            #if you specify your own tokenizer, assert it is callable
+            assert callable(self.tokenizer), 'Supplied tokenizer must be a callable function/method'
+
+        if self.pad_token is not None:
+            assert type(self.pad_token) is str, 'pad_token must be a string'
             self.add_or_get_id(self.pad_token)
-        if unk_token is not None:
+        if self.unk_token is not None:
+            assert type(self.unk_token) is str, 'unk_token must be a string'
             self.add_or_get_id(self.unk_token)
-        if start_token is not None:
+        if self.start_token is not None:
+            assert type(self.start_token) is str, 'start_token must be a string'
             self.add_or_get_id(self.start_token)
-        if end_token is not None:
+        if self.end_token is not None:
+            assert type(self.end_token) is str, 'end_token must be a string'
             self.add_or_get_id(self.end_token)
 
     def __len__(self):
@@ -87,6 +103,10 @@ class Vocab:
                     tokens = self.tokenizer(text)
                     counter.update(tokens)
 
+        if self.max_size == None:
+            #if you don't set a max_size then nothing is unk'd
+            self.max_size = len(counter)
+
         for token, count in tqdm(counter.most_common(self.max_size), desc='Building dictionary'):
             if count >= self.min_freq:
                 self.add_or_get_id(token)
@@ -111,7 +131,7 @@ class Vocab:
 
         return temp
 
-def build_vocab(sources, max_size=1_000_000, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+def build_vocab(sources, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
     """
     Does the same thing as: 
     vocab = blib.text.Vocab(...)
@@ -132,17 +152,20 @@ def tokenize(vocab, sources):
 
     return vocab.tokenize(sources)
 
-def build_and_tokenize(sources, max_size=1_000_000, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+def build_and_tokenize(build_sources, tokenize_sources=None, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
     """
-    If you want to build your vocab on all of the train/val/test set, then this is a shorthand way of doing it.
-    If you only want to build your vocab on the train/val set and not the test set (or something similar), then DON'T USE THIS.
+    This does the building of the vocab and the tokenization in a single step
+    build_sources is what you want to use to build the vocab, i.e. can build from just train or train, val and test.
+    tokenize_sources are the sources you want to tokenize (99% of the time should be train, val and test)
     """
+    if tokenize_sources == None:
+        tokenize_sources = build_sources
 
     vocab = Vocab(max_size, min_freq, unk_token, pad_token, start_token, end_token, tokenizer)
 
-    vocab.build_vocab(sources)
+    vocab.build_vocab(build_sources)
 
     #need to wrap in tuple to unpack
-    return (vocab, *vocab.tokenize(sources))
+    return (vocab, *vocab.tokenize(tokenize_sources))
 
     
