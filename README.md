@@ -103,8 +103,8 @@ y_vocab, y_train, y_val, y_test = blib.text.build_and_tokenize([y_train, y_val, 
 #blib.data has PyTorch dataset objects for 1/2 inputs and 1/2 outputs
 train_dataset = blib.data.TwoOneDataset(X1_train, X2_train, y_train)
 
-#the blib dataloader is the same as the PyTorch one, just with the padcollate thing already handled
-train_dataloader = blib.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
+#the blib dataloader is just a wrapper for the PyTorch one
+train_dataloader = blib.data.DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=blib.data.TwoOnePadCollate())
 ```
 
 ### Using pre-build models
@@ -126,7 +126,7 @@ model = blib.models.RNNClassification(len(X_vocab),
 
 ``` python
 
-#opt and loss are just convenience wrappers so you only need the blib include
+#opt and loss are just convenience wrappers so you only need the blib import
 optimizer = blib.opt.Adam(model.parameters())
 criterion = blib.loss.CrossEntropyLoss()
 

@@ -5,3 +5,4 @@ from . import metrics
 from . import data
 from . import text
 from . import utils
+from . import models

@@ -3,4 +3,4 @@
 
 from .dataloader import DataLoader
 from .datasets import OneOneDataset, TwoOneDataset, OneTwoDataset, TwoTwoDataset
-from .padcollates import TwoOnePadCollate
+from .padcollates import OneOnePadCollate, TwoOnePadCollate
