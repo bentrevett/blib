@@ -90,9 +90,10 @@ X_train, X_val, X_test = blib.text.tokenize(X_vocab, [X_train, X_val, X_test])
 X_train, X_val, X_test = X_vocab.tokenize([X_train, X_val, X_test]) #same as above
 
 #this does the building vocab and tokenization in one step
-#it will always use data from all provided sources to build the vocab so there's less control
-#however for tokenizing the labels this shouldn't matter
 #note how the first returned value is the vocab object
+#this is how to build the vocab from one set of sources and tokenize another set
+X_vocab, X_train, X_val, X_test = blib.text.build_and_tokenize([X_train], [X_train, X_val, X_test], max_size=20_000, min_freq=3)
+#this is how to build and tokenize the vocab from one set of sources
 y_vocab, y_train, y_val, y_test = blib.text.build_and_tokenize([y_train, y_val, y_test], unk_token=None, pad_token=None)
 ```
 

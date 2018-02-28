@@ -2,7 +2,7 @@ import torch.utils.data
 
 class OneOneDataset(torch.utils.data.Dataset):
 
-    def __init__(self, input1, input2, output1):
+    def __init__(self, input1, output1):
         """
         The standard PyTorch dataset objects only handle single-input-single-output data loading and they must all be the same length already. 
         This handles variable length sequences which means you can use a custom pad_collat_fn to handle only padding to the maximum length of a sequence WITHIN a batch, instead of maximum length sequence across all examples.
