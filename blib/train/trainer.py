@@ -29,7 +29,11 @@ class Trainer:
         - n_inp is the number of inputs
         - n_out is the number of outputs
         """
-        
+        if clip is not None:
+            assert clip>0, 'clip should be greater than 0'
+        assert n_inp > 0, 'Need at least one input'
+        assert n_out > 0, 'Need at least one output'
+
         self.dataloaders = dataloaders
         self.model = model
         self.optimizer = optimizer
@@ -49,8 +53,11 @@ class Trainer:
         self.train_dataloader, self.val_dataloader, self.test_dataloader = self.process_dataloaders(dataloaders)
 
         if self.load_path is not None:
-            assert os.path.isfile(load_path) 
+            assert os.path.isfile(load_path), 'Supplied weights path doesn\'t exist'
             self.model.load_state_dict(torch.load(self.load_path))
+
+        if self.use_gpu:
+            model = model.cuda()
 
     def process_dataloaders(self, dataloaders):
         """
@@ -82,6 +89,38 @@ class Trainer:
         else:
             return dataloaders[0], dataloaders[1], dataloaders[2]
 
+    def run(self, n_epochs, metric='val_loss', patience=float('inf'), test=True, verbose=True):
+        """
+        Does the train, val, test loop
+
+        n_epochs: the number of epochs to do train -> val loop for
+        metric: the metric to use for early stopping
+        patience: the patience value for early stopping
+        test: if `run` should automatically run on the test data
+        verbose: if the model should print the results for each train -> val loop
+        """
+        best_run_metric = float('inf') #early stopping loss
+        patience_count = 0 #how many epochs have gone by without improvement in early stopping metric
+
+        for i in range(n_epochs):
+            self.train()
+            self.validate()
+            if verbose:
+                print(f"Epoch: {i+1}, Train Loss: {self.losses['train_loss'][-1]:.3f}, Train Acc: {self.losses['train_acc'][-1]*100:.2f}%, Val. Loss: {self.losses['val_loss'][-1]:.3f}, Val Acc. {self.losses['val_acc'][-1]*100:.2f}%")
+            if self.losses[metric][-1] < best_run_metric:
+                best_run_metric = self.losses[metric][-1]
+                patience_count = 0
+            else:
+                patience_count += 1
+                if patience_count > patience:
+                    print('Stopping early.')
+                    break
+
+        if test:
+            self.test()
+            if verbose:
+                print(f"Test Loss: {self.losses['test_loss'][-1]:.3f}, Test Acc.: {self.losses['test_acc'][-1]*100:.2f}%")
+
     def train(self):
         """
         Runs a single epoch while updating parameters
@@ -89,8 +128,9 @@ class Trainer:
         
         self.model.train() #turn back on do/bn
         self.mode = 'Training'
-        loss = self._iteration(self.train_dataloader) #run single pass
+        loss, acc = self._iteration(self.train_dataloader) #run single pass
         self.losses['train_loss'].append(loss) #append losses
+        self.losses['train_acc'].append(acc) #append accuracy
 
     def validate(self):
         """
@@ -101,8 +141,9 @@ class Trainer:
         
         self.model.eval() #turn off do/bn
         self.mode = 'Validating'
-        loss = self._iteration(self.val_dataloader) #run single pass
+        loss, acc = self._iteration(self.val_dataloader) #run single pass
         self.losses['val_loss'].append(loss) #append losses
+        self.losses['val_acc'].append(acc) #append accuracy
 
         if self.scheduler is not None:
             self.scheduler.step(loss) #update LR
@@ -110,6 +151,24 @@ class Trainer:
         if self.save_path is not None and loss < self.best_val_loss:
             torch.save(self.model.state_dict(), self.save_path) #save params if best loss
             self.best_val_loss = loss
+
+    def val(self):
+        """
+        Alias for validate
+        """
+        self.validate()
+
+    def eval(self):
+        """
+        Alias for validate
+        """
+        self.validate()
+
+    def evaluate(self):
+        """
+        Alias for validate
+        """
+        self.validate()
 
     def test(self):
         """
@@ -119,12 +178,13 @@ class Trainer:
         
         self.model.eval() #turn off do/bn
         self.mode = 'Testing'
-        loss = self._iteration(self.test_dataloader) #run single pass
+        loss, acc = self._iteration(self.test_dataloader) #run single pass
         self.losses['test_loss'].append(loss) #append losses
+        self.losses['test_acc'].append(acc) #append accuracy
 
     def _iteration(self, dataloader):
         """
-        Runs single forward and backward pass through the data
+        Runs single epoch of forward and backward passes through the data
 
         Gets data (as Tensors) from dataloader
         Converts to variables
@@ -137,6 +197,9 @@ class Trainer:
         Updates parameters (if training)
         Returns loss averaged over epoch
         """
+
+        epoch_loss = 0
+        epoch_acc = 0
 
         for i, data in enumerate(tqdm(dataloader, desc=self.mode), start=1):
             
@@ -160,13 +223,28 @@ class Trainer:
             else:
                 loss = self.criterion(y_pred, y[0].squeeze())
 
+                _, pred = torch.max(y_pred.data, 1)
+                correct = (pred == y[0].squeeze().data)
+                epoch_acc += correct.sum()/len(correct)
+
             if self.mode == 'Training':
                 loss.backward()
                 if self.clip is not None:
                     torch.nn.utils.clip_grad_norm(model.parameters(), CLIP)
                 self.optimizer.step()
 
-        return loss.data[0]/len(dataloader)
+            epoch_loss += loss.data[0]
+
+        return epoch_loss/len(dataloader), epoch_acc/len(dataloader)
+
+    def save(self, path):
+        """
+        Saves model parameters to path
+        """
+        torch.save(self.model.state_dict(), path)
+
+
+
         
     
         

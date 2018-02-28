@@ -5,7 +5,7 @@ class RNNClassification(nn.Module):
     """
     Standard bidirectional LSTM
     """
-    def __init__(self, input_size, output_dim, embedding_dim=256, hidden_dim=256, rnn_type='LSTM', n_layers=2, bidirectional=True, dropout=0.5):
+    def __init__(self, input_dim, output_dim, embedding_dim=256, hidden_dim=256, rnn_type='LSTM', n_layers=2, bidirectional=True, dropout=0.5):
         super(RNNClassification, self).__init__()
 
         self.embedding = nn.Embedding(input_dim, embedding_dim)

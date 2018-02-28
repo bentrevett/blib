@@ -3,10 +3,12 @@ from tqdm import tqdm
 
 class Vocab:
 
-    def __init__(self, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+    def __init__(self, max_size=None, min_freq=0, max_length=None, pad=False, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
 
         self.max_size = max_size
         self.min_freq = min_freq
+        self.max_length = max_length
+        self.pad = pad
         self.unk_token = unk_token
         self.pad_token = pad_token
         self.start_token = start_token
@@ -21,6 +23,10 @@ class Vocab:
 
         if self.max_size is not None and self.min_freq>0:
             assert self.unk_token is not None, "If unk_token = None, then you cannot set max_size or min_freq"
+
+        if self.pad:
+            assert self.max_length is not None, 'If you want to pad all sequences to a certain length, need to specify a max. length to pad to'
+            assert self.pad_token is not None, 'If you want to pad, cannot have pad_token == None'
 
         if self.tokenizer == None:
             #default tokenizer is to split the string on spaces
@@ -101,7 +107,10 @@ class Vocab:
             #source is a list of list of strings
             for text in tqdm(source, desc='Building counter'):
                     tokens = self.tokenizer(text)
-                    counter.update(tokens)
+                    if self.max_length is None:
+                        counter.update(tokens)
+                    else:
+                        counter.update(tokens[:self.max_length]) #TODO: this is inefficient 
 
         if self.max_size == None:
             #if you don't set a max_size then nothing is unk'd
@@ -121,24 +130,31 @@ class Vocab:
             #source is a list of strings
             for text in tqdm(source, desc='Tokenizing'):
                 #text is a string
-                tokens = self.tokenizer(text)
+                if self.max_length is None:
+                    tokens = self.tokenizer(text)
+                else:
+                    tokens = self.tokenizer(text) #TODO: this is inefficient 
+                    tokens = tokens[:self.max_length]
                 if self.start_token is not None:
                     tokens = [self.start_token] + tokens
                 if self.end_token is not None:
                     tokens = tokens + [self.end_token]
+                if self.pad:
+                    while(len(tokens)<self.max_length):
+                        tokens.append(self.pad_token)
                 _temp.append(self.get_id_or_unk(tokens))
             temp.append(_temp)
 
         return temp
 
-def build_vocab(sources, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+def build_vocab(sources, max_size=None, min_freq=0, max_length=None, pad=False, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
     """
     Does the same thing as: 
     vocab = blib.text.Vocab(...)
     vocab.build_vocab(sources, ...)
     """
     
-    vocab = Vocab(max_size, min_freq, unk_token, pad_token, start_token, end_token, tokenizer)
+    vocab = Vocab(max_size, min_freq, max_length, pad, unk_token, pad_token, start_token, end_token, tokenizer)
 
     vocab.build_vocab(sources)
 
@@ -152,7 +168,7 @@ def tokenize(vocab, sources):
 
     return vocab.tokenize(sources)
 
-def build_and_tokenize(build_sources, tokenize_sources=None, max_size=None, min_freq=0, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
+def build_and_tokenize(build_sources, tokenize_sources=None, max_size=None, min_freq=0, max_length=None, pad=False, unk_token='<UNK>', pad_token='<PAD>', start_token=None, end_token=None, tokenizer=None):
     """
     This does the building of the vocab and the tokenization in a single step
     build_sources is what you want to use to build the vocab, i.e. can build from just train or train, val and test.
@@ -161,7 +177,7 @@ def build_and_tokenize(build_sources, tokenize_sources=None, max_size=None, min_
     if tokenize_sources == None:
         tokenize_sources = build_sources
 
-    vocab = Vocab(max_size, min_freq, unk_token, pad_token, start_token, end_token, tokenizer)
+    vocab = Vocab(max_size, min_freq, max_length, pad, unk_token, pad_token, start_token, end_token, tokenizer)
 
     vocab.build_vocab(build_sources)
 
