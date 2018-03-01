@@ -89,12 +89,12 @@ class Trainer:
         else:
             return dataloaders[0], dataloaders[1], dataloaders[2]
 
-    def run(self, n_epochs, patience=float('inf'), metric='val_loss', patience_mode='min', test=True, verbose=True):
+    def run(self, n_epochs, patience=float('inf'), patience_metric='val_loss', patience_mode='min', test=True, verbose=True):
         """
         Does the train, val, test loop
 
         n_epochs: the number of epochs to do train -> val loop for
-        metric: the metric to use for early stopping
+        patience_metric: the metric to use for early stopping
         patience: the patience value for early stopping
         patience_mode: 'min' if you want to metric to be decreasing (loss), 'max' if you want it to increase (acc/F1)
         test: if `run` should automatically run on the test data
@@ -113,8 +113,8 @@ class Trainer:
             if verbose:
                 print(f"Epoch: {i+1}, Train Loss: {self.losses['train_loss'][-1]:.3f}, Train Acc: {self.losses['train_acc'][-1]*100:.2f}%, Val. Loss: {self.losses['val_loss'][-1]:.3f}, Val Acc. {self.losses['val_acc'][-1]*100:.2f}%")
             if patience_mode == 'min':
-                if self.losses[metric][-1] < best_run_metric:
-                    best_run_metric = self.losses[metric][-1]
+                if self.losses[patience_metric][-1] < best_run_metric:
+                    best_run_metric = self.losses[patience_metric][-1]
                     patience_count = 0
                 else:
                     patience_count += 1

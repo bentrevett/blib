@@ -149,7 +149,7 @@ trainer.run(n_epochs)
 trainer.run(n_epochs, 3)
 
 #early stopping if validation accuracy doesn't improve after 3 epochs
-trainer.run(n_epochs, patience=3, metric='val_acc', patience_mode='max')
+trainer.run(n_epochs, patience=3, patience_metric='val_acc', patience_mode='max')
 
 #manually saving model
 trainer.save(save_path)
