@@ -122,8 +122,8 @@ class Trainer:
                         print('Stopping early.')
                         break
             elif patience_mode == 'max':
-                if self.losses[metric][-1] > best_run_metric: 
-                    best_run_metric = self.losses[metric][-1]
+                if self.losses[patience_metric][-1] > best_run_metric: 
+                    best_run_metric = self.losses[patience_metric][-1]
                     patience_count = 0
                 else:
                     patience_count += 1
