@@ -89,7 +89,7 @@ class Trainer:
         else:
             return dataloaders[0], dataloaders[1], dataloaders[2]
 
-    def run(self, n_epochs, metric='val_loss', patience=float('inf'), patience_mode='min', test=True, verbose=True):
+    def run(self, n_epochs, patience=float('inf'), metric='val_loss', patience_mode='min', test=True, verbose=True):
         """
         Does the train, val, test loop
 

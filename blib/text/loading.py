@@ -86,7 +86,9 @@ def from_folders(path, folders, shuffle=False, splits=None):
 
     Changed it so labels are the text (folder name) and not numerical to make consistent w/ rest of the library
     """
-    assert os.path.isfile(path), 'Path supplied is not file'
+    assert os.path.exists(path), 'Path supplied does not exist'
+    for folder in folders:
+        assert os.path.exists(os.path.join(path, folder)), f'Folder {folder} does not exist'
 
     if shuffle==True:
         assert splits is not None, "You only shuffle here when you split the data, if you're looking to shuffle data passed in the neural network, this is NOT when you do it"
@@ -97,6 +99,8 @@ def from_folders(path, folders, shuffle=False, splits=None):
         for fname in glob.glob(os.path.join(path, label, '*.*')):
             texts.append(open(fname, 'r').read())
             labels.append(label)
+
+    assert len(texts) > 0 and len(labels) > 0, 'Didn\'t find any examples!'
 
     data = [texts, labels]
 

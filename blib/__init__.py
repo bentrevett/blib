@@ -6,3 +6,5 @@ from . import data
 from . import text
 from . import utils
 from . import models
+from . import opt
+from . import loss
